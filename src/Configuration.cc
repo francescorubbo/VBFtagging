@@ -6,7 +6,7 @@ Configuration::Configuration(int argc, char* argv[]){
     gen_desc.add_options()
       ("help", "produce help message")
       ("Debug",     po::value<int>(&fDebug) ->default_value(0) ,     "Debug flag")
-      ("OutFile",   po::value<string>(&outName)->default_value("Timing.root"), "output file name")
+      ("OutFile",   po::value<string>(&outName)->default_value("VBFTagging.root"), "output file name")
       ("Seed",      po::value<int>(&seed)->default_value(-1), "Seed. -1 means random seed");
 
     po::options_description sim_desc("Simulation Settings");

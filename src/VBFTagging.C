@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Definitions.h"
-// #include "TimingAnalysis.h"
+#include "VBFTaggingAnalysis.h"
 #include "Configuration.h"
 
 using namespace std;
@@ -19,16 +19,16 @@ int main(int argc, char* argv[]){
   settings.ConfigurePythiaSignal(pythiaHS.get());
   settings.ConfigurePythiaPileup(pythiaPU.get());
     
-  // TimingAnalysis
-  // TimingAnalysis analysis(pythiaHS.get(),pythiaPU.get(), settings);
-  // analysis.Initialize(settings.minEta,settings.maxEta,settings.dtype,2*settings.seed);
+  // VBFTaggingAnalysis
+  VBFTaggingAnalysis analysis(pythiaHS.get(),pythiaPU.get(), settings);
+  analysis.Initialize();
   
   // Event loop
   cout << "Progress:" << endl;
   for (int iev = 0; iev < settings.nEvents; iev++) {
     if (iev%20==0)
       cout << "\tCurrent: " << iev << endl;
-    // analysis.AnalyzeEvent(iev, settings.pileup);
+    analysis.AnalyzeEvent(iev, settings.pileup);
   }  
   cout << "VBFTagging Analysis Complete!" << endl;
   

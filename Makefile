@@ -14,8 +14,8 @@ all: setup VBFTagging
 setup:
 	mkdir -p lib
 
-VBFTagging:  lib/VBFTagging.so lib/Configuration.so
-	$(CXX) lib/VBFTagging.so lib/Configuration.so -o $@ \
+VBFTagging:  lib/VBFTagging.so lib/VBFTaggingAnalysis.so lib/Configuration.so
+	$(CXX) lib/VBFTagging.so lib/VBFTaggingAnalysis.so lib/Configuration.so -o $@ \
 	$(CXXFLAGS) -Wno-shadow  \
 	`root-config --glibs` -lEG -lEGPythia8 \
 	-I./include -L./lib \
@@ -23,7 +23,7 @@ VBFTagging:  lib/VBFTagging.so lib/Configuration.so
 	-L$(PYTHIA8LOCATION)/lib -lpythia8 -llhapdfdummy \
 	-L$(BOOSTLIBLOCATION) -lboost_program_options 
 
-lib/VBFTagging.so: src/VBFTagging.C
+lib/VBFTagging.so: src/VBFTagging.C lib/VBFTaggingAnalysis.so
 	$(CXX) -o $@ -c $<  \
 	$(CXXFLAGS) -Wno-shadow -fPIC -shared \
 	`$(FASTJETLOCATION)/bin/fastjet-config --cxxflags --plugins` -lSubjetJVF -lVertexJets \
@@ -31,6 +31,14 @@ lib/VBFTagging.so: src/VBFTagging.C
 	-I$(PYTHIA8LOCATION)/include \
 	-I $(BOOSTINCDIR) \
 	`root-config --cflags` 
+
+lib/VBFTaggingAnalysis.so : src/VBFTaggingAnalysis.cc include/VBFTaggingAnalysis.h 
+	$(CXX) -o $@ -c $<  \
+	$(CXXFLAGS) -Wno-shadow -fPIC -shared \
+	`$(FASTJETLOCATION)/bin/fastjet-config --cxxflags --plugins` -lSubjetJVF -lVertexJets \
+	-I./include \
+	-I$(PYTHIA8LOCATION)/include \
+	`root-config --cflags --libs` 
 
 lib/Configuration.so : src/Configuration.cc include/Configuration.h
 	$(CXX) -o $@ -c $<  \
