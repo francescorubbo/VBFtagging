@@ -213,18 +213,20 @@ double VBFTaggingAnalysis::TruthFrac(PseudoJet jet, JetVector truthJets){
   //for each truth jet
   for (unsigned int tj = 0; tj < truthJets.size(); tj++){
     double ptTruthTot=0;
-    double ptTot=truthJets[tj].pt();
+    // double ptTot=truthJets[tj].pt();
+    double ptTot = 0;
     //for each truth particle
     for (unsigned int ti=0; ti < truthJets[tj].constituents().size(); ti++){
       auto truthInfo = truthJets[tj].constituents()[ti].user_info<VBFTaggingInfo>();
       int truthID = truthInfo.pythia_id();
+      ptTot += truthJets[tj].constituents()[ti].pt();
       
       //for each particle in the main jet
       for (unsigned int i=0; i < jet.constituents().size(); i++){
 	auto pInfo = jet.constituents()[i].user_info<VBFTaggingInfo>();
 	// if it is the identical particle, only use if we have timing info
 	if ((not pInfo.pileup()) and (truthID == pInfo.pythia_id())){
-	  ptTruthTot += jet.constituents()[tj].pt();
+	  ptTruthTot += truthJets[tj].constituents()[ti].pt();
 	}
       }
     }
