@@ -43,6 +43,7 @@ class VBFTaggingAnalysis{
   treeBranch *jphi;
   treeBranch *jeta;
   treeBranch *jtruth;
+  treeBranch *fjvt;
   
   treeBranch *truejpt;
   treeBranch *truejphi;
@@ -56,6 +57,7 @@ class VBFTaggingAnalysis{
   void FillTree(JetVector jets, JetVector truthJets);
   void FillTruthTree(JetVector jets);
   double TruthFrac(PseudoJet jet, JetVector truthJets);
+  double ComputeFJVT(PseudoJet jet, JetVector jets);
   bool Ignore(Pythia8::Particle &p);
 
   //Jet selection functions

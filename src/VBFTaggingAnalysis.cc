@@ -1,4 +1,6 @@
 #include "VBFTaggingAnalysis.h"
+#include <boost/math/distributions/normal.hpp>
+using boost::math::normal;
 
 using namespace std;
 
@@ -38,6 +40,7 @@ VBFTaggingAnalysis::~VBFTaggingAnalysis(){
     delete jphi;
     delete jeta;
     delete jtruth;
+    delete fjvt;
     delete truejpt;
     delete truejphi;
     delete truejeta;
@@ -70,6 +73,7 @@ void VBFTaggingAnalysis::Initialize(){
    jphi =     new treeBranch();  
    jeta =     new treeBranch();  
    jtruth =   new treeBranch();
+   fjvt =     new treeBranch();
 
    truejpt =  new treeBranch();  
    truejphi = new treeBranch();  
@@ -172,12 +176,13 @@ void VBFTaggingAnalysis::selectJets(JetVector &particlesForJets, fastjet::Cluste
 
     JetVector allSelectedJets;
     allSelectedJets.clear();
-    allSelectedJets = (*select_fwd)(subtractedJets);
+    // allSelectedJets = (*select_fwd)(subtractedJets);
+    allSelectedJets = (*select_fwd)(inclusiveJets);
     
     //select jets with pt > 20
     selectedJets.clear();
     for( auto ijet = allSelectedJets.begin(); ijet != allSelectedJets.end(); ++ijet){
-      if(ijet->pt() >= 20)
+      if(ijet->pt() >= 10)
 	selectedJets.push_back(*ijet);
     }
   }
@@ -196,6 +201,12 @@ void VBFTaggingAnalysis::FillTree(JetVector jets, JetVector TruthJets){
     jphi->push_back(jets[ijet].phi());
     jtruth->push_back(TruthFrac(jets[ijet],TruthJets));
   }
+  for (unsigned int ijet=0; ijet<jets.size(); ijet++){
+    // cout << "fwd jet pt: " << jets[ijet].pt() << " eta: " << jets[ijet].eta() << " phi: "<< jets[ijet].phi() 
+    // 	 << " truth: " << jtruth->at(ijet) << endl;
+    fjvt->push_back(ComputeFJVT(jets[ijet],jets));
+  }
+
 }
 
 void VBFTaggingAnalysis::FillTruthTree(JetVector jets){  
@@ -264,6 +275,7 @@ void VBFTaggingAnalysis::DeclareBranches(){
   tT->Branch("jphi","std::vector<float>",&jphi);
   tT->Branch("jeta","std::vector<float>",&jeta);
   tT->Branch("jtruth","std::vector<float>",&jtruth);
+  tT->Branch("fjvt","std::vector<float>",&fjvt);
 
   tT->Branch("truejpt", "std::vector<float>",&truejpt);
   tT->Branch("truejphi","std::vector<float>",&truejphi);
@@ -282,7 +294,32 @@ void VBFTaggingAnalysis::ResetBranches(){
       jphi->clear();
       jeta->clear();
       jtruth->clear();
+      fjvt->clear();
       truejpt->clear();
       truejphi->clear();
       truejeta->clear();
+}
+
+double VBFTaggingAnalysis::ComputeFJVT(PseudoJet jet, JetVector jets){
+
+  double fjvt = -1.;
+  if(abs(jet.eta())<2.5) return fjvt;
+
+  normal gaus(jet.pt(),0.2*jet.pt());
+  double totgaus = 0.;
+  //for each truth jet
+  for (unsigned int ijet = 0; ijet < jets.size(); ijet++){
+    if(jtruth->at(ijet)>0.5) continue;
+    if(abs(jets[ijet].eta())>2.5) continue;
+    PseudoJet b2bjet;
+    b2bjet.reset_PtYPhiM(jet.pt(),jet.eta(),-1*jet.phi(),jet.m());
+    double phidist = abs(jets[ijet].delta_phi_to(b2bjet));
+    if(phidist>0.2) continue;
+    totgaus += pdf(gaus,jets[ijet].pt());
+    // cout << "ctl jet pt: " << jets[ijet].pt() << " eta: " << jets[ijet].eta() << " phi: " << phidist
+    // 	 << " gaus " << pdf(gaus,jets[ijet].pt()) << endl;
+  }
+  if(totgaus>0.) fjvt = totgaus;
+
+  return fjvt;
 }
